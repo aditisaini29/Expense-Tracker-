@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expense Tracker</title>
+
+  <style>
+    /* ---------- Page ---------- */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(180deg, #e8f5ee 0%, #f4f6f8 300px);
+      margin: 0;
+      padding: 20px 15px 40px 15px;
+      color: #2b2b2b;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1f6f4a;
+      font-size: 28px;
+      margin: 10px 0 20px 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 10px 0;
+      color: #1f6f4a;
+    }
+
+    /* ---------- Boxes ---------- */
+    .box {
+      background-color: white;
+      padding: 18px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .total-box {
+      background: linear-gradient(135deg, #2e8b57, #1f6f4a);
+      color: white;
+      text-align: center;
+    }
+
+    .total-box .small-text {
+      color: #d6f0e2;
+    }
+
+    .big-number {
+      font-size: 38px;
+      font-weight: bold;
+      margin: 6px 0;
+    }
+
+    /* ---------- Form items ---------- */
+    label {
+      display: block;
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #555555;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 11px;
+      margin-top: 5px;
+      font-size: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #fafafa;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #2e8b57;
+      background-color: white;
+    }
+
+    button {
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    #addButton,
+    #budgetButton {
+      width: 100%;
+      margin-top: 15px;
+      background-color: #2e8b57;
+      color: white;
+    }
+
+    #clearButton {
+      width: 100%;
+      margin-top: 15px;
+      background-color: #cc4444;
+      color: white;
+    }
+
+    /* ---------- Text ---------- */
+    .small-text {
+      font-size: 14px;
+      color: #777777;
+    }
+
+    .over-budget {
+      color: #cc4444;
+      font-weight: bold;
+    }
+
+    .error-message {
+      color: #cc4444;
+      font-size: 14px;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    /* ---------- Budget bar ---------- */
+    .bar-background {
+      background-color: #e5e5e5;
+      height: 14px;
+      border-radius: 7px;
+      margin-top: 15px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      background-color: #2e8b57;
+      height: 14px;
+      width: 0%;
+      border-radius: 7px;
+    }
+
+    /* ---------- Category list ---------- */
+    .category-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .category-row:last-child {
+      border-bottom: none;
+    }
+
+    .category-name {
+      font-weight: 600;
+    }
+
+    /* ---------- Expense list ---------- */
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .expense-item:last-child {
+      border-bottom: none;
+    }
+
+    .expense-name {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .expense-amount {
+      font-weight: bold;
+      color: #1f6f4a;
+      font-size: 16px;
+      text-align: right;
+    }
+
+    .badge {
+      display: inline-block;
+      background-color: #e3f3ea;
+      color: #1f6f4a;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-right: 6px;
+    }
+
+    .delete-button {
+      background-color: #ffe5e5;
+      color: #cc4444;
+      font-size: 12px;
+      padding: 5px 10px;
+      margin-top: 6px;
+    }
+
+    /* ---------- Small screens ---------- */
+    @media (max-width: 400px) {
+      .big-number {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1>Expense Tracker</h1>
+
+    <!-- TOTAL BOX -->
+    <div class="box total-box">
+      <div class="small-text">Total spent</div>
+      <div class="big-number" id="totalText">₹0.00</div>
+      <div class="small-text" id="countText">0 expenses</div>
+    </div>
+
+    <!-- BUDGET BOX -->
+    <div class="box">
+      <h2>Monthly Budget</h2>
+      <label for="budgetInput">Set your budget (₹)</label>
+      <input id="budgetInput" type="number" placeholder="e.g. 10000">
+      <button id="budgetButton">Save Budget</button>
+
+      <div class="bar-background">
+        <div class="bar-fill" id="budgetBar"></div>
+      </div>
+      <div class="small-text" id="budgetText">No budget set</div>
+    </div>
+
+    <!-- ADD EXPENSE BOX -->
+    <div class="box">
+      <h2>Add Expense</h2>
+
+      <label for="nameInput">What did you buy?</label>
+      <input id="nameInput" type="text" placeholder="e.g. Lunch">
+
+      <label for="amountInput">Amount (₹)</label>
+      <input id="amountInput" type="number" placeholder="0.00">
+
+      <label for="categoryInput">Category</label>
+      <select id="categoryInput">
+        <option value="Food">Food</option>
+        <option value="Transport">Transport</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Bills">Bills</option>
+        <option value="Fun">Fun</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="dateInput">Date</label>
+      <input id="dateInput" type="date">
+
+      <div class="error-message" id="errorText"></div>
+
+      <button id="addButton">Add Expense</button>
+    </div>
+
+    <!-- CATEGORY SUMMARY BOX -->
+    <div class="box">
+      <h2>Spending by Category</h2>
+      <div id="categoryList"></div>
+    </div>
+
+    <!-- EXPENSE LIST BOX -->
+    <div class="box">
+      <h2>All Expenses</h2>
+
+      <label for="filterInput">Show only:</label>
+      <select id="filterInput">
+        <option value="All">All categories</option>
+        <option value="Food">Food</option>
+        <option value="Transport">Transport</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Bills">Bills</option>
+        <option value="Fun">Fun</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <div id="expenseList"></div>
+
+      <button id="clearButton">Delete All Expenses</button>
+    </div>
+
+  </div>
+
+  <script>
+    // =====================================================
+    // 1. VARIABLES
+    // =====================================================
+    var expenses = [];
+    var budget = 0;
+    var categories = ["Food", "Transport", "Shopping", "Bills", "Fun", "Other"];
+
+
+    // =====================================================
+    // 2. SAVING AND LOADING
+    // =====================================================
+    function saveData() {
+      try {
+        localStorage.setItem("expenses", JSON.stringify(expenses));
+        localStorage.setItem("budget", String(budget));
+      } catch (e) {
+        // saving is not available, the app still works
+      }
+    }
+
+    function loadData() {
+      try {
+        var savedExpenses = localStorage.getItem("expenses");
+        var savedBudget = localStorage.getItem("budget");
+
+        if (savedExpenses != null) {
+          expenses = JSON.parse(savedExpenses);
+        }
+
+        if (savedBudget != null) {
+          budget = Number(savedBudget);
+        }
+      } catch (e) {
+        expenses = [];
+        budget = 0;
+      }
+    }
+
+
+    // =====================================================
+    // 3. HELPER FUNCTIONS
+    // =====================================================
+
+    // Turn 125000 into "₹1,25,000.00" (Indian style)
+    function formatMoney(number) {
+      return "₹" + number.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // Stops special characters from breaking the page
+    function cleanText(text) {
+      text = String(text);
+      text = text.replace(/&/g, "&amp;");
+      text = text.replace(/</g, "&lt;");
+      text = text.replace(/>/g, "&gt;");
+      return text;
+    }
+
+    // Today's date as YYYY-MM-DD
+    function getToday() {
+      var today = new Date();
+      var year = today.getFullYear();
+      var month = today.getMonth() + 1;
+      var day = today.getDate();
+
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (day < 10) {
+        day = "0" + day;
+      }
+
+      return year + "-" + month + "-" + day;
+    }
+
+    function getTotal() {
+      var total = 0;
+
+      for (var i = 0; i < expenses.length; i++) {
+        total = total + expenses[i].amount;
+      }
+
+      return total;
+    }
+
+    function getCategoryTotal(categoryName) {
+      var total = 0;
+
+      for (var i = 0; i < expenses.length; i++) {
+        if (expenses[i].category == categoryName) {
+          total = total + expenses[i].amount;
+        }
+      }
+
+      return total;
+    }
+
+
+    // =====================================================
+    // 4. ADDING AN EXPENSE
+    // =====================================================
+    function addExpense() {
+      var name = document.getElementById("nameInput").value;
+      var amount = Number(document.getElementById("amountInput").value);
+      var category = document.getElementById("categoryInput").value;
+      var date = document.getElementById("dateInput").value;
+      var errorText = document.getElementById("errorText");
+
+      if (name == "") {
+        errorText.innerText = "Please enter a name.";
+        return;
+      }
+
+      if (amount <= 0) {
+        errorText.innerText = "Amount must be more than 0.";
+        return;
+      }
+
+      if (date == "") {
+        date = getToday();
+      }
+
+      errorText.innerText = "";
+
+      var newExpense = {
+        id: Date.now(),
+        name: name,
+        amount: amount,
+        category: category,
+        date: date
+      };
+
+      expenses.push(newExpense);
+
+      saveData();
+      document.getElementById("nameInput").value = "";
+      document.getElementById("amountInput").value = "";
+      showEverything();
+    }
+
+
+    // =====================================================
+    // 5. DELETING
+    // =====================================================
+    function deleteExpense(id) {
+      var newList = [];
+
+      for (var i = 0; i < expenses.length; i++) {
+        if (expenses[i].id != id) {
+          newList.push(expenses[i]);
+        }
+      }
+
+      expenses = newList;
+      saveData();
+      showEverything();
+    }
+
+    function clearAll() {
+      var sure = confirm("Delete ALL expenses?");
+
+      if (sure == true) {
+        expenses = [];
+        saveData();
+        showEverything();
+      }
+    }
+
+
+    // =====================================================
+    // 6. BUDGET
+    // =====================================================
+    function saveBudget() {
+      var value = Number(document.getElementById("budgetInput").value);
+
+      if (value <= 0) {
+        alert("Please enter a budget above 0.");
+        return;
+      }
+
+      budget = value;
+      saveData();
+      document.getElementById("budgetInput").value = "";
+      showEverything();
+    }
+
+
+    // =====================================================
+    // 7. SHOWING THINGS ON THE SCREEN
+    // =====================================================
+    function showTotal() {
+      var total = getTotal();
+      document.getElementById("totalText").innerText = formatMoney(total);
+
+      if (expenses.length == 1) {
+        document.getElementById("countText").innerText = "1 expense";
+      } else {
+        document.getElementById("countText").innerText = expenses.length + " expenses";
+      }
+    }
+
+    function showBudget() {
+      var bar = document.getElementById("budgetBar");
+      var text = document.getElementById("budgetText");
+
+      if (budget == 0) {
+        bar.style.width = "0%";
+        text.innerText = "No budget set";
+        text.className = "small-text";
+        return;
+      }
+
+      var total = getTotal();
+      var percent = (total / budget) * 100;
+
+      if (percent > 100) {
+        percent = 100;
+      }
+
+      bar.style.width = percent + "%";
+
+      var left = budget - total;
+
+      if (left >= 0) {
+        text.innerText = formatMoney(left) + " left of " + formatMoney(budget);
+        text.className = "small-text";
+        bar.style.backgroundColor = "#2e8b57";
+      } else {
+        text.innerText = "Over budget by " + formatMoney(0 - left) + "!";
+        text.className = "small-text over-budget";
+        bar.style.backgroundColor = "#cc4444";
+      }
+    }
+
+    function showCategories() {
+      var html = "";
+
+      for (var i = 0; i < categories.length; i++) {
+        var name = categories[i];
+        var amount = getCategoryTotal(name);
+
+        html = html + '<div class="category-row">';
+        html = html + '<span class="category-name">' + name + '</span>';
+        html = html + '<span>' + formatMoney(amount) + '</span>';
+        html = html + '</div>';
+      }
+
+      document.getElementById("categoryList").innerHTML = html;
+    }
+
+    function showList() {
+      var filter = document.getElementById("filterInput").value;
+      var html = "";
+      var shown = 0;
+
+      // Newest expense first
+      for (var i = expenses.length - 1; i >= 0; i--) {
+        var item = expenses[i];
+
+        if (filter != "All" && item.category != filter) {
+          continue;
+        }
+
+        shown = shown + 1;
+
+        html = html + '<div class="expense-item">';
+
+        html = html + '<div>';
+        html = html + '<div class="expense-name">' + cleanText(item.name) + '</div>';
+        html = html + '<div class="small-text">';
+        html = html + '<span class="badge">' + item.category + '</span>' + item.date;
+        html = html + '</div>';
+        html = html + '</div>';
+
+        html = html + '<div>';
+        html = html + '<div class="expense-amount">' + formatMoney(item.amount) + '</div>';
+        html = html + '<button class="delete-button" onclick="deleteExpense(' + item.id + ')">Delete</button>';
+        html = html + '</div>';
+
+        html = html + '</div>';
+      }
+
+      if (shown == 0) {
+        html = '<p class="small-text">No expenses to show.</p>';
+      }
+
+      document.getElementById("expenseList").innerHTML = html;
+    }
+
+    function showEverything() {
+      showTotal();
+      showBudget();
+      showCategories();
+      showList();
+    }
+
+
+    // =====================================================
+    // 8. START THE APP
+    // =====================================================
+    document.getElementById("addButton").onclick = addExpense;
+    document.getElementById("budgetButton").onclick = saveBudget;
+    document.getElementById("clearButton").onclick = clearAll;
+    document.getElementById("filterInput").onchange = showList;
+
+    document.getElementById("dateInput").value = getToday();
+
+    loadData();
+    showEverything();
+  </script>
+
+</body>
+</html>
